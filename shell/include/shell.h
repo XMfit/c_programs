@@ -13,7 +13,7 @@
 #include <readline/history.h>
 
 /* Macros */
-#define COMMAND_BUFFER 1024
+#define BUFFER 1024
 #define COMMAND_ARGS 64
 #define PROMPT "mini-shell #"
 
@@ -31,6 +31,8 @@ int new_process(char **args);
 
 // built in functions
 int own_cd(char **args);
+int own_history(char **args);
+int write_to_history(char **args);
 int own_help(char **args);
 int own_exit(char **args);
 

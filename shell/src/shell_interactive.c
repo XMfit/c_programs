@@ -6,7 +6,7 @@ char *my_generator(const char *text, int state);
 void shell_interactive (void) {
 
     char *args[COMMAND_ARGS];
-    char prompt[COMMAND_BUFFER];
+    char prompt[BUFFER];
 
     // readline() is interactive and gets weird with setColor funcs
     // so im just manually adding the colors to the string
@@ -68,7 +68,7 @@ char **my_completion(const char *text, int start, int end) {
 // The generator function called by readline to generate possible matches
 char *my_generator(const char *text, int state) {
     // Current cmd list (need to figure out how to add more automatically during runtime)
-    static const char *commands[] = {"cd", "env", "help", "exit", "ls", "clear", "gcc", "github", "vim", NULL};
+    static const char *commands[] = {"cd", "env", "help", "exit", "ls", "clear", "gcc", "git", "vim", NULL};
     static int list_index, len;
     
     // Initialize the search

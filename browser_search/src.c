@@ -28,6 +28,7 @@ int main(int argc, char *argv[]) {
     snprintf(url, sizeof(url), "https://www.google.com/search?q=%s", search_terms);
 
     // Construct cmd to open browser
+    // Included "2>/dev/null" to not have text output to terminal
     snprintf(command, sizeof(command), "xdg-open \"%s\" 2>/dev/null", url);
     int result = system(command);
 
