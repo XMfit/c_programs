@@ -7,11 +7,16 @@ void shell_interactive (void) {
 
     char *args[COMMAND_ARGS];
     char prompt[COMMAND_BUFFER];
-    snprintf(prompt, sizeof(prompt), "%s ", PROMPT);
+
+    // readline() is interactive and gets weird with setColor funcs
+    // so im just manually adding the colors to the string
+    snprintf(prompt, sizeof(prompt), "\001\033[1;35m\002%s\001\033[0m\002 ", PROMPT);
 
     // auto-completion function
     rl_attempted_completion_function = my_completion;
     int status = 1;
+
+    print_home_msg();
 
     while (status) {
         // Read input
@@ -39,6 +44,21 @@ void shell_interactive (void) {
     }
 }
 
+void print_home_msg() {
+    setColor(GREEN);
+    printf("\n\n");
+    printf("               /$$           /$$                 /$$                 /$$ /$$\n");
+    printf("              |__/          |__/                | $$                | $$| $$\n");
+    printf(" /$$$$$$/$$$$  /$$ /$$$$$$$  /$$        /$$$$$$$| $$$$$$$   /$$$$$$ | $$| $$\n");
+    printf("| $$_  $$_  $$| $$| $$__  $$| $$       /$$_____/| $$__  $$ /$$__  $$| $$| $$\n");
+    printf("| $$ \\ $$ \\ $$| $$| $$  \\ $$| $$      |  $$$$$$ | $$  \\ $$| $$$$$$$$| $$| $$\n");
+    printf("| $$ | $$ | $$| $$| $$  | $$| $$       \\____  $$| $$  | $$| $$_____/| $$| $$\n");
+    printf("| $$ | $$ | $$| $$| $$  | $$| $$       /$$$$$$$/| $$  | $$|  $$$$$$$| $$| $$\n");
+    printf("|__/ |__/ |__/|__/|__/  |__/|__/      |_______/ |__/  |__/ \\_______/|__/|__/\n");
+    resetColor();
+    printf("\n\n");
+}
+
 // Auto completion function used by readline
 char **my_completion(const char *text, int start, int end) {
     rl_completion_append_character = ' ';
@@ -47,7 +67,7 @@ char **my_completion(const char *text, int start, int end) {
 
 // The generator function called by readline to generate possible matches
 char *my_generator(const char *text, int state) {
-    // Curr cmd list (need to figure out how to add more automatically during runtime)
+    // Current cmd list (need to figure out how to add more automatically during runtime)
     static const char *commands[] = {"cd", "env", "help", "exit", "ls", "clear", "gcc", "github", "vim", NULL};
     static int list_index, len;
     

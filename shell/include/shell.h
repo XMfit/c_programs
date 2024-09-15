@@ -21,6 +21,7 @@
 
 // An interactive Unix RPEL shell
 void shell_interactive(void);
+void print_home_msg(void);
 
 // Executing Arguments
 int execute_args(char **args);
@@ -32,5 +33,14 @@ int new_process(char **args);
 int own_cd(char **args);
 int own_help(char **args);
 int own_exit(char **args);
+
+// colors :D
+
+#define RED "\033[1;31m"
+#define GREEN "\033[1;32m"
+#define MAGENTA "\033[1;35m"
+
+void setColor(const char *);
+void resetColor();
 
 #endif
