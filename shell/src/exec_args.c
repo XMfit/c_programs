@@ -4,7 +4,6 @@ int execute_args(char **args) {
     // built in func list to simulate built in shell code
     char *builtin_func_list[] = {
         "cd",
-        "env",
         "help",
         "exit"
     };
@@ -12,7 +11,6 @@ int execute_args(char **args) {
     // array of function pointers for built in functions
     int (*builtin_func[])(char **) = {
         &own_cd,
-        &own_env,
         &own_help,
         &own_exit
     };

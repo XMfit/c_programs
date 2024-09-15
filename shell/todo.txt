@@ -1,0 +1,6 @@
+Make autocompletion command list better
+
+Hard-code commands like:
+	export
+	unset
+	history
