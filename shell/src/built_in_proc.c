@@ -9,7 +9,7 @@ int own_cd(char **args) {
         }
     }
 
-    return 1;
+    return 0;
 }
 
 int own_history(char **args) {
@@ -44,7 +44,7 @@ int own_history(char **args) {
 
     fclose(file);
     
-    return 1;
+    return 0;
 }
 
 int write_to_history(char **args) {
@@ -63,7 +63,73 @@ int write_to_history(char **args) {
     fprintf(file, "\n");
     fclose(file);
 
-    return 1;
+    return 0;
+}
+
+int own_env(char **args) {
+    FILE *file = fopen(".mini_env", "r");
+    char line[BUFFER];
+    if (file == NULL)
+        perror("Error opening file");
+
+    while (fgets(line, sizeof(line), file)) {
+        printf("%s", line);
+    }
+
+    fclose(file);
+    return 0;
+}
+
+int own_set(char **args) {
+
+    int length = 0;
+    while (args[length] != NULL)
+        length++;
+
+    if (length < 3) {
+        fprintf(stderr, "Invalid amount of arguments: set <var_name> <value>\n");
+        return 0;
+    }
+
+    // args[0] -> cmd
+    // args[1] -> var
+    // args[2] -> new_val
+
+    FILE *file = fopen(".mini_env", "r");
+    FILE *temp_file = fopen("temp.env", "w");
+
+    char line [BUFFER];
+    int replaced = 0;
+
+    if (!file || !temp_file) {
+        perror("Error opening file(s)\n");
+        return 0;
+    }
+
+    while (fgets(line, BUFFER, file)) {
+        // Check if line starts with target variable
+        if (strncmp(line, args[1], strlen(args[1])) == 0 && !replaced) {
+            // Replace line with new value
+            fprintf(temp_file, "%s = \"%s\"\n", args[1], args[2]);
+            replaced = 1;
+        } else {
+            // Write line to temp file
+            fputs(line, temp_file);
+        }
+    }
+    
+    fclose(file);
+    fclose(temp_file);
+
+    if (replaced) {
+        remove(".mini_env");
+        rename("temp.env", ".mini_env");
+    } else {
+        fprintf(stderr, "Error variable not found\n");
+        remove("temp.env");
+    }
+
+    return 0;
 }
 
 int own_help(char **args) {
@@ -71,12 +137,15 @@ int own_help(char **args) {
     printf("Following built in commands:\n");
     printf("cd\n");
     printf("help\n");
+    printf("history\n");
+    printf("env\n");
+    printf("set <var> <value>\n");
     printf("exit\n");
     printf("Use man command for more info on commands\n");
-    return 1;
+    return 0;
 }
 
 int own_exit(char **args) {
     printf("Exiting shell\n");
-    return 0;
+    return 1;
 }

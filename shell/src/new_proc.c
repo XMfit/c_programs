@@ -12,6 +12,5 @@ int new_process(char **args) {
         perror("fork failed");
     }
 
-    return 1;
-
+    return 0;
 }

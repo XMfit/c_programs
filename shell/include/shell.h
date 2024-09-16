@@ -33,6 +33,8 @@ int new_process(char **args);
 int own_cd(char **args);
 int own_history(char **args);
 int write_to_history(char **args);
+int own_env(char **args);
+int own_set(char **args);
 int own_help(char **args);
 int own_exit(char **args);
 

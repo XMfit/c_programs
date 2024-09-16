@@ -14,11 +14,11 @@ void shell_interactive (void) {
 
     // auto-completion function
     rl_attempted_completion_function = my_completion;
-    int status = 1;
+    int status = 0;
 
     print_home_msg();
 
-    while (status) {
+    while (!status) {
         // Read input
         char *input = readline(prompt);
         if (input == NULL) {
