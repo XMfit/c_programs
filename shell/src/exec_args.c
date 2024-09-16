@@ -22,13 +22,14 @@ int execute_args(char **args) {
     };
 
     if (args[0] != NULL) {
+        write_to_history(args); // write cmd to history file
         // Check if the command matches a built-in function
-        write_to_history(args);
         for (int i = 0; i < sizeof(builtin_func_list) / sizeof(char *); i++) {
             if (strcmp(args[0], builtin_func_list[i]) == 0) {
                 return ((*builtin_func[i])(args));
             }
         }
+        // if not execute new proc via fork()
         return new_process(args);
     }
 

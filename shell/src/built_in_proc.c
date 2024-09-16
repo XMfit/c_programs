@@ -1,19 +1,23 @@
 #include "../include/shell.h"
 
 int own_cd(char **args) {
+    // No arguments
     if (args[1] == NULL) {
-        fprintf(stderr, "expected arguments: \"cd <dir-name>\"\n");
-    } else {
+        char *home = getenv("HOME");
+        if (chdir(home) != 0)
+            perror("cd");
+    } else if (args[2] == NULL) {
         if (chdir(args[1]) != 0) {
             perror("cd");
         }
+    } else {
+        fprintf(stderr, "cd: too many arguments supplied\n");
     }
 
     return 0;
 }
 
 int own_history(char **args) {
-
     FILE *file = fopen(historyPath, "r");
     if (file == NULL)
         perror("Error opening file");
@@ -36,8 +40,9 @@ int own_history(char **args) {
         }
     }
 
-    fseek(file, position + 1, SEEK_SET);
+    fseek(file, position + 1, SEEK_SET);    // Move up one from newline char
 
+    // While non null lines print lines
     while (fgets(buffer, BUFFER, file) != NULL) {
         printf("%s", buffer);
     }
@@ -81,7 +86,6 @@ int own_env(char **args) {
 }
 
 int own_set(char **args) {
-
     int length = 0;
     while (args[length] != NULL)
         length++;
@@ -146,6 +150,8 @@ int own_help(char **args) {
 }
 
 int own_exit(char **args) {
+    setColor(YELLOW);
     printf("Exiting shell\n");
+    resetColor();
     return 1;
 }

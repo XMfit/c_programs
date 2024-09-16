@@ -50,6 +50,8 @@ int own_exit(char **args);
 #define RED "\033[1;31m"
 #define GREEN "\033[1;32m"
 #define MAGENTA "\033[1;35m"
+#define YELLOW "\033[1;33m"
+#define CYAN "\033[1;37m"
 
 void setColor(const char *);
 void resetColor();

@@ -9,7 +9,6 @@ char historyPath[BUFFER * 2];   // full path to history file
 char envPath[BUFFER * 2];       // full path to environment file
 
 void shell_interactive (void) {
-
     // set history and envi file paths
     set_file_paths();
 
@@ -24,7 +23,6 @@ void shell_interactive (void) {
     print_home_msg();
 
     while (!status) {
-
         // retrieve and store cwd
         char cwd[BUFFER];
         getcwd(cwd, sizeof(cwd));
@@ -59,6 +57,7 @@ void shell_interactive (void) {
     }
 }
 
+// Set file paths for history and env file
 void set_file_paths() {
     // Setting up file paths for shell files
     char shellDir[BUFFER];       // str storing path of exe
@@ -66,18 +65,18 @@ void set_file_paths() {
     ssize_t len = readlink("/proc/self/exe", shellDir, sizeof(shellDir) - 1);
     shellDir[len] = '\0';
     trim_bin(shellDir);
-    printf("%s\n", shellDir);
-
+    
     snprintf(historyPath, sizeof(historyPath), "%s/.mini_history", shellDir);
     snprintf(envPath, sizeof(envPath), "%s/.mini_env", shellDir);
 }
-
+// Remove bin from filepath string
 void trim_bin(char *path) {
     char *bin_pos = strstr(path, "/bin");
     if (bin_pos)
         *bin_pos = '\0';
 }
 
+// Remove quations from arguments
 void remove_quotes(char **args) {
     for (int i = 0; args[i] != NULL; i++) {
         char *str = args[i];
@@ -94,6 +93,7 @@ void remove_quotes(char **args) {
     }
 }
 
+// Greeting :D
 void print_home_msg() {
     setColor(GREEN);
     printf("\n\n");
