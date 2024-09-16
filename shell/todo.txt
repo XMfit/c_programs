@@ -1,6 +1,11 @@
 Make autocompletion command list better
 
 Hard-code commands like:
-	export
-	unset
-	history
+	exporting a new var into .envi
+    deleting var from .envi
+    
+	
+I/O redirection
+    piping (done)
+    make piping more advanced (multi pipes!)
+    redir with > or <

@@ -6,11 +6,7 @@ char *my_generator(const char *text, int state);
 void shell_interactive (void) {
 
     char *args[COMMAND_ARGS];
-    char prompt[BUFFER];
-
-    // readline() is interactive and gets weird with setColor funcs
-    // so im just manually adding the colors to the string
-    snprintf(prompt, sizeof(prompt), "\001\033[1;35m\002%s\001\033[0m\002 ", PROMPT);
+    char prompt[BUFFER * 2];
 
     // auto-completion function
     rl_attempted_completion_function = my_completion;
@@ -19,6 +15,13 @@ void shell_interactive (void) {
     print_home_msg();
 
     while (!status) {
+        // readline() is interactive and gets weird with setColor funcs
+        // so im just manually adding the colors to the string
+        char cwd[BUFFER];
+        getcwd(cwd, sizeof(cwd));
+        // colorful prompt :D
+        snprintf(prompt, sizeof(prompt), "\033[1;35m%s:\033[0m\033[1;34m%s\033[0m# ", PROMPT, cwd);
+
         // Read input
         char *input = readline(prompt);
         if (input == NULL) {
@@ -39,8 +42,25 @@ void shell_interactive (void) {
         add_history(input);
 
         // Execute commands
+        remove_quotes(args);
         status = execute_args(args);
         free(input);
+    }
+}
+
+void remove_quotes(char **args) {
+    for (int i = 0; args[i] != NULL; i++) {
+        char *str = args[i];
+        char *src = str;
+        char *dst = str;
+
+        while (*src) {
+            if (*src != '"' && *src != '\'') {
+                *dst++ = *src;
+            }
+            src++;
+        }
+        *dst = '\0'; // Null-terminate the modified string
     }
 }
 

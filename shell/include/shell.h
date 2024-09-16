@@ -15,13 +15,14 @@
 /* Macros */
 #define BUFFER 1024
 #define COMMAND_ARGS 64
-#define PROMPT "mini-shell #"
+#define PROMPT "mini-shell"
 
 /* functions */
 
 // An interactive Unix RPEL shell
 void shell_interactive(void);
 void print_home_msg(void);
+void remove_quotes(char **args);
 
 // Executing Arguments
 int execute_args(char **args);
