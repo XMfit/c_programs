@@ -5,22 +5,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/wait.h>
+#include <unistd.h>     // Posix sys calls
+#include <sys/wait.h>   // Manage child procs
+#include <libgen.h>     // File paths
+#include <limits.h>     // Sys limits
 
 /* GNU Libraries */
-#include <readline/readline.h>
-#include <readline/history.h>
+#include <readline/readline.h>  // Interactive read line
+#include <readline/history.h>   // Track input history
 
 /* Macros */
-#define BUFFER 1024
-#define COMMAND_ARGS 64
-#define PROMPT "mini-shell"
+#define BUFFER 1024             // Standard size of string
+#define COMMAND_ARGS 64         // Max number of arguments in a command
+#define PROMPT "mini-shell"     // Current prompt
+
+/* Vars shared between source files */
+extern char historyPath[BUFFER * 2];    // Max file path size
+extern char envPath[BUFFER * 2];        // Max file path size
 
 /* functions */
 
 // An interactive Unix RPEL shell
-void shell_interactive(void);
+void shell_interactive(void);       // Main RPEL loop
 void print_home_msg(void);
 void remove_quotes(char **args);
 

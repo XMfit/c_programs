@@ -2,11 +2,20 @@
 
 char **my_completion(const char *text, int start, int end);
 char *my_generator(const char *text, int state);
+void set_file_paths();
+void trim_bin(char *path);
+
+char historyPath[BUFFER * 2];   // full path to history file
+char envPath[BUFFER * 2];       // full path to environment file
 
 void shell_interactive (void) {
 
-    char *args[COMMAND_ARGS];
-    char prompt[BUFFER * 2];
+    // set history and envi file paths
+    set_file_paths();
+
+    // Creating vars to store user prompted text
+    char *args[COMMAND_ARGS];   // tokenized prompt
+    char prompt[BUFFER * 2];    // users prompt
 
     // auto-completion function
     rl_attempted_completion_function = my_completion;
@@ -15,11 +24,13 @@ void shell_interactive (void) {
     print_home_msg();
 
     while (!status) {
-        // readline() is interactive and gets weird with setColor funcs
-        // so im just manually adding the colors to the string
+
+        // retrieve and store cwd
         char cwd[BUFFER];
         getcwd(cwd, sizeof(cwd));
-        // colorful prompt :D
+
+        // readline() is interactive and gets weird with setColor funcs
+        // so im just manually adding the colors to the string
         snprintf(prompt, sizeof(prompt), "\033[1;35m%s:\033[0m\033[1;34m%s\033[0m# ", PROMPT, cwd);
 
         // Read input
@@ -46,6 +57,25 @@ void shell_interactive (void) {
         status = execute_args(args);
         free(input);
     }
+}
+
+void set_file_paths() {
+    // Setting up file paths for shell files
+    char shellDir[BUFFER];       // str storing path of exe
+
+    ssize_t len = readlink("/proc/self/exe", shellDir, sizeof(shellDir) - 1);
+    shellDir[len] = '\0';
+    trim_bin(shellDir);
+    printf("%s\n", shellDir);
+
+    snprintf(historyPath, sizeof(historyPath), "%s/.mini_history", shellDir);
+    snprintf(envPath, sizeof(envPath), "%s/.mini_env", shellDir);
+}
+
+void trim_bin(char *path) {
+    char *bin_pos = strstr(path, "/bin");
+    if (bin_pos)
+        *bin_pos = '\0';
 }
 
 void remove_quotes(char **args) {

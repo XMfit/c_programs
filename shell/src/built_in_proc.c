@@ -14,7 +14,7 @@ int own_cd(char **args) {
 
 int own_history(char **args) {
 
-    FILE *file = fopen(".mini_history", "r");
+    FILE *file = fopen(historyPath, "r");
     if (file == NULL)
         perror("Error opening file");
 
@@ -48,7 +48,7 @@ int own_history(char **args) {
 }
 
 int write_to_history(char **args) {
-    FILE *file = fopen(".mini_history", "a");
+    FILE *file = fopen(historyPath, "a");
     if (file == NULL)
         perror("Error opening file");
 
@@ -67,7 +67,7 @@ int write_to_history(char **args) {
 }
 
 int own_env(char **args) {
-    FILE *file = fopen(".mini_env", "r");
+    FILE *file = fopen(envPath, "r");
     char line[BUFFER];
     if (file == NULL)
         perror("Error opening file");
@@ -95,7 +95,7 @@ int own_set(char **args) {
     // args[1] -> var
     // args[2] -> new_val
 
-    FILE *file = fopen(".mini_env", "r");
+    FILE *file = fopen(envPath, "r");
     FILE *temp_file = fopen("temp.env", "w");
 
     char line [BUFFER];
@@ -122,8 +122,8 @@ int own_set(char **args) {
     fclose(temp_file);
 
     if (replaced) {
-        remove(".mini_env");
-        rename("temp.env", ".mini_env");
+        remove(envPath);
+        rename("temp.env", envPath);
     } else {
         fprintf(stderr, "Error variable not found\n");
         remove("temp.env");
