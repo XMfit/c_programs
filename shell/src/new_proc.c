@@ -3,6 +3,7 @@
 // function prototypes
 void execute_pipes(char ***commands, int num_commands);
 void execute_out_redir(char ***commands);
+void execute_in_redir(char ***commands);
 void parse_args_into_commands(char *args[], char ***commands, int *num_commands, char *delim);
 int has_flag(char **args, int args_length, char *delim);
 
@@ -16,6 +17,7 @@ int new_process(char **args) {
     // find if pipe is in cmd
     int has_pipe = has_flag(args, args_length, "|");
     int has_out_redir = has_flag(args, args_length, ">");
+    int has_inp_redir = has_flag(args, args_length, "<");
 
     if (has_pipe) {
         // 2d char *pointer array
@@ -38,6 +40,13 @@ int new_process(char **args) {
         // fill in commands
         parse_args_into_commands(args, commands, &num_commands, ">");
         execute_out_redir(commands);
+    } else if (has_inp_redir) {
+        char **commands[MAX_COMMANDS];
+        int num_commands = 0;
+
+        // fill in commands
+        parse_args_into_commands(args, commands, &num_commands, "<");
+        execute_in_redir(commands);
     } else {
         // Run single command
         pid_t pid;
@@ -137,11 +146,35 @@ void execute_out_redir(char ***commands) {
     }
 
     fflush(stdout);  // force clear buffer
-
     dup2(saved_stdout, STDOUT_FILENO);
 }
 
 /* Input Redirection Funcs */
+void execute_in_redir(char ***commands) {
+    pid_t pid;
+    int fd, saved_stdin;
+    if ((pid = fork()) == -1) {
+        perror("fork failed");
+    } else if (pid == 0) {
+        saved_stdin = dup(STDIN_FILENO);
+        fd = open(*commands[1], O_RDONLY);
+        dup2(fd, STDIN_FILENO);
+        close(fd);
+
+        execvp(commands[0][0], commands[0]);
+
+        // restore if failure
+        dup2(saved_stdin, STDIN_FILENO);
+        close(saved_stdin);
+        perror("execvp failed");
+    } else if (pid > 0) {
+        wait(NULL);
+    } else {
+        perror("fork failed");
+    }
+}
+
+// Parse into commands
 void parse_args_into_commands(char *args[], char ***commands, int *num_commands, char *delim) {
     *num_commands = 0;
     int command_start = 0;
