@@ -1,92 +1,119 @@
 #include "../include/shell.h"
 
+/* Piping Funcs */
+void execute_pipes(char ***commands, int num_commands) {
+    int pipefd[2];
+    pid_t pid;
+    int fd_in = 0;  // input for the next command
+
+    for (int i = 0; i < num_commands; i++) {
+        if (pipe(pipefd) == -1) {
+            perror("pipe failed");
+        }
+
+        if ((pid = fork()) == -1) {
+            perror("fork failed");
+        }
+
+        if (pid == 0) {
+            // in child process
+            dup2(fd_in, STDIN_FILENO);  // get input from the previous command
+            if (i < num_commands - 1) {
+                dup2(pipefd[1], STDOUT_FILENO); // redirect output to the pipe for the next command
+            }
+            close(pipefd[0]);  // close unused read end
+            close(pipefd[1]);  // close write end after redirect
+
+            // execute the current command
+            execvp(commands[i][0], commands[i]);
+            perror("execvp failed");
+        } else {
+            // in parent process
+            wait(NULL);          // wait for the child to finish
+            close(pipefd[1]);    // close write end in the parent
+            fd_in = pipefd[0];   // use read end as input for the next command
+        }
+    }
+
+    // idk if i need this code
+    close(pipefd[0]);
+    close(pipefd[1]);
+}
+
+void parse_args_into_commands(char *args[], char ***commands, int *num_commands) {
+    *num_commands = 0;
+    int command_start = 0;
+    int arg_index = 0;
+    
+    while (args[arg_index] != NULL) {
+        if (strcmp(args[arg_index], "|") == 0) {
+            // Create a command between command_start and arg_index
+            int command_length = arg_index - command_start;
+            commands[*num_commands] = malloc((command_length + 1) * sizeof(char *));
+            
+            for (int i = 0; i < command_length; i++) {
+                commands[*num_commands][i] = args[command_start + i];
+            }
+            commands[*num_commands][command_length] = NULL;
+            
+            (*num_commands)++;
+            command_start = arg_index + 1; // start the next command after the pipe
+        }
+        arg_index++;
+    }
+    
+    // Add the final command post last pipe
+    int command_length = arg_index - command_start;
+    commands[*num_commands] = malloc((command_length + 1) * sizeof(char *));
+    for (int i = 0; i < command_length; i++) {
+        commands[*num_commands][i] = args[command_start + i];
+    }
+    commands[*num_commands][command_length] = NULL;
+    (*num_commands)++;
+}
+
+/* Output Redirection Funcs */
+
+/* Input Redirection Funcs */
+
 int new_process(char **args) {
-    // Pipe check
-    int pipe_index = -1, args_length = 0;
+    // get length of **args
+    int args_length = 0;
     while (args[args_length] != NULL)
         args_length++;
 
-    // Find pipe index
+
+    // find if pipe is in cmd
+    int has_pipe = 0;
     for (int i = 0; i < args_length; i++) {
         if (strcmp(args[i], "|") == 0) {
-            pipe_index = i;
+            has_pipe;
             break;
         }
     }
 
-    // Run with pipe
-    if (pipe_index != -1) {
+    if (has_pipe) {
+        // 2d char *pointer array
+        char **commands[MAX_COMMANDS];
+        int num_commands = 0;
 
-        // Build cmd1 & cmd2
-        char *cmd1[pipe_index + 1];
-        char *cmd2[args_length - pipe_index];
+        // fill in commands, and execute
+        parse_args_into_commands(args, commands, &num_commands);
+        execute_pipes(commands, num_commands);
 
-        // Build cmd1
-        for (int i = 0; i < pipe_index; i++) {
-            cmd1[i] = args[i];
+        // free up commands
+        for (int i = 0; i < num_commands; i++) {
+            free(commands[i]);
         }
-        cmd1[pipe_index] = NULL;  // null terminator
-
-        // Build cmd2
-        for (int i = 0; i < args_length - pipe_index - 1; i++) {
-            cmd2[i] = args[pipe_index + 1 + i];
-        }
-        cmd2[args_length - pipe_index - 1] = NULL;  // null terminator
-
-        /* Debugg statements
-        printf("cmd1: %s\n", cmd1[0]);
-        for (int i = 0; cmd1[i] != NULL; i++) {
-            printf("cmd1 arg[%d]: %s\n", i, cmd1[i]);
-        }
-
-        printf("cmd2: %s\n", cmd2[0]);
-        for (int i = 0; cmd2[i] != NULL; i++) {
-            printf("cmd2 arg[%d]: %s\n", i, cmd2[i]);
-        }
-        */
-
-        // Create pipe
-        int pipefd[2];
-        if (pipe(pipefd) == -1) {
-            perror("Error creating pipe");
-            return 0;
-        }
-
-        // fork for cmd1
-        pid_t pid1 = fork();
-        if (pid1 == 0) {  // child process for cmd1
-            close(pipefd[0]);               // close read end
-            dup2(pipefd[1], STDOUT_FILENO); // redirect stdout to pipe
-            close(pipefd[1]);               // close write end after redirect
-            execvp(cmd1[0], cmd1);          // execute cmd1
-            fflush(stdout);                 // idk if this really does anything
-            perror("execvp failed");
-            exit(1);       
-        }
-
-        // fork for cmd2
-        pid_t pid2 = fork();
-        if (pid2 == 0) {  // child process for cmd2
-            close(pipefd[1]);               // close write end
-            dup2(pipefd[0], STDIN_FILENO);  // redirect stdin from pipe
-            close(pipefd[0]);               // close read end after redirect
-            execvp(cmd2[0], cmd2);          // execute cmd2
-            perror("execvp failed");
-            exit(1);
-        }
-
-        // Close pipe in parent
-        close(pipefd[0]);
-        close(pipefd[1]);
-
-        // Wait for both children to finish
-        waitpid(pid1, NULL, 0);
-        waitpid(pid2, NULL, 0);
-
 
     } else {
         // Run single command
-        pid_t pid = fork();
+        pid_t pid;
+
+        if ((pid = fork()) == -1) {
+            perror("fork failed");
+        }
+
         if (pid == 0) {
             execvp(args[0], args);
             perror("execvp failed");

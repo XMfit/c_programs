@@ -17,6 +17,7 @@
 /* Macros */
 #define BUFFER 1024             // Standard size of string
 #define COMMAND_ARGS 64         // Max number of arguments in a command
+#define MAX_COMMANDS 24         // Max number of commands in a pipe chain
 #define PROMPT "mini-shell"     // Current prompt
 
 /* Vars shared between source files */
