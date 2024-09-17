@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>     // Posix sys calls
+#include <fcntl.h>      // To manipulate file descriptors
 #include <sys/wait.h>   // Manage child procs
 #include <libgen.h>     // File paths
 #include <limits.h>     // Sys limits
