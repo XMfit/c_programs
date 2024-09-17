@@ -74,6 +74,8 @@ void parse_args_into_commands(char *args[], char ***commands, int *num_commands)
 
 /* Output Redirection Funcs */
 
+void execute_out_redir();
+
 /* Input Redirection Funcs */
 
 int new_process(char **args) {
@@ -87,7 +89,15 @@ int new_process(char **args) {
     int has_pipe = 0;
     for (int i = 0; i < args_length; i++) {
         if (strcmp(args[i], "|") == 0) {
-            has_pipe;
+            has_pipe++;
+            break;
+        }
+    }
+
+    int has_out_redir = 0;
+    for (int i = 0; i < args_length; i++) {
+        if (strcmp(args[i], ">") == 0) {
+            has_out_redir++;
             break;
         }
     }
@@ -106,6 +116,8 @@ int new_process(char **args) {
             free(commands[i]);
         }
 
+    } else if (has_out_redir) {
+        
     } else {
         // Run single command
         pid_t pid;
