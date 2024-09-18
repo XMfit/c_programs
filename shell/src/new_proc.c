@@ -147,6 +147,7 @@ void execute_out_redir(char ***commands) {
 
     fflush(stdout);  // force clear buffer
     dup2(saved_stdout, STDOUT_FILENO);
+    close(saved_stdout);
 }
 
 /* Input Redirection Funcs */
