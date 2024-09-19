@@ -1,6 +1,6 @@
 all: bin/main
 
-bin/main:  src/main.c
+bin/main:  src/main.c src/heap.c
 	gcc -o $@ $^
 
 clean:
