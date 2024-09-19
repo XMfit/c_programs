@@ -53,11 +53,26 @@ void *my_malloc(size_t size) {
         return NULL;
     }
 
-    // Future block splitting?
+    // Coalescing, if curr block is larger than size + metadata split block
+    if (block->size >= size + BLOCK_SIZE ) {
+        /**
+         * BASICALLY we found a curr block that is for userspace
+         * we split this current block via new block and giving it the size of our new user space
+         * set its size to the space after allocation, mark it as free, and update its next
+         * set curr blocks size, and point it to new block (new block being our new available user space)
+         */
+        struct block_metadata *new_block = (struct block_metadata *)((char *)block + BLOCK_SIZE + size);
+        new_block->size = block->size - size - BLOCK_SIZE;  // size of leftover space
+        new_block->free = 1;            // marking as free
+        new_block->next = block->next;  // link to next
+
+        block->size = size;         // shrink the current block to requested size
+        block->next = new_block;    // point to the new block
+    }
 
     // Mark as no longer being free, and return
     block->free = 0;
-    return (char *)block + BLOCK_SIZE;
+    return (char *)block + BLOCK_SIZE;  // return size of block + block_size to accomadate user size + metadata
 
 }
 
@@ -69,6 +84,10 @@ void my_free(void *ptr) {
     struct block_metadata *block = (struct block_metadata *)((char *)ptr - BLOCK_SIZE);
     block->free = 1;
 
-    // Future free split blocks
+    // Coalescing
+    if (block->next && block->next->free) { // check if next block isnt null, and is also free
+        block->size += block->next->size + BLOCK_SIZE;   // sum their sizes + metadata size
+        block->next = block->next->next;
+    }
 
 }
