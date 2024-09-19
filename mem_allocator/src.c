@@ -4,77 +4,76 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-#define BLOCK_SIZE 512              // Size of a block
 #define INIT_HEAP_SIZE (1 << 25)    // 2 MB
+#define BLOCK_SIZE 256              // Size of a block
 
-/* Structure managing heap */
-typedef struct {
-    void *base;     // pointer to track where we are in the heap
-    size_t size;
-} Heap;
+/* Pointer for heap */
+void *heap = NULL;
 
-Heap heap;
+
+/* Memory block */
+struct block_metadata {
+    size_t size;                    // size of block
+    int free;                       // flag for if its free or not
+    struct block_metadata *next;    // points to next block
+};
+
 
 /* Functions to manage heap structure */
-Heap create_heap(size_t size);
-Heap resize_heap(Heap *heap, size_t new_size);
-void destroy_heap(Heap *heap);
+int init_heap();
+int destroy_heap();
+
+/* Expected functions to aid in malloc() and free()*/
+
+/* Functions for dynamic allocation */
+void *my_malloc(size_t size);
+void *my_free(void *ptr);
 
 int main() {
 
-    heap = create_heap(INIT_HEAP_SIZE);
+    init_heap();
 
-    printf("Size: %zu bytes\n", heap.size);
-    printf("Location %p\n", (void *)heap.base);
+    // printf("Location %p\n", (void *)heap);
 
-    resize_heap(&heap, INIT_HEAP_SIZE * 2);
+    int *ptr = (int *)my_malloc(sizeof(int));
 
-    printf("Size: %zu bytes\n", heap.size);
-    printf("Location %p\n", (void *)heap.base);
+    destroy_heap();
 
-    destroy_heap(&heap);
-
-    printf("Size: %zu bytes\n", heap.size);
-    printf("Location %p\n", (void *)heap.base);
 
     return 0;
 }
 
-Heap create_heap(size_t size) {
-    Heap heap;
-    heap.base = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
-    if (heap.base == MAP_FAILED) {
+int init_heap() {
+    heap = mmap(NULL, INIT_HEAP_SIZE, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+    if (heap == MAP_FAILED) {
         perror("mmap failed");
-        exit(EXIT_FAILURE);
+        return -1;
     }
-    heap.size = size;
-    return heap;
+
+    // Split our heap into blocks
+    struct block_metadata *initial_block = (struct block_metadata *)heap;
+    initial_block->size = INIT_HEAP_SIZE - BLOCK_SIZE;
+    initial_block->free = 1;
+    initial_block->next = NULL;
+
+    return 0;
 }
 
-Heap resize_heap(Heap *heap, size_t new_size) {
-    void *new_base = mmap(NULL, new_size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-    if (new_base == MAP_FAILED) {
-        perror("mmap failed");
-        exit(EXIT_FAILURE);
+int destroy_heap() {
+    if(munmap(heap, INIT_HEAP_SIZE)) {
+        perror("munmap");
+        return -1;
     }
-
-    if (new_size > heap->size) {
-        memcpy(new_base, heap->base, heap->size);
-    }
-
-    munmap(heap->base, heap->size);
-
-    heap->base = new_base;
-    heap->size = new_size;
+    return 0;
 }
 
-void destroy_heap(Heap *heap) {
-    if (heap->base != MAP_FAILED) {
-        munmap(heap->base, heap->size);
-        heap->base = NULL;
-        heap->size = 0;
+void *my_malloc(size_t size) {
+    struct block_metadata *block;
+
+    if (size <= 0) {
+        return NULL;
     }
+
 }
