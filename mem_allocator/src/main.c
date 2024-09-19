@@ -52,8 +52,6 @@ int main() {
     printf("Location %p Value: %s\n", (void *)str, str);
     my_free(str);
 
-    void *ptr4 = my_malloc(1 << 25);
-    void *ptr5 = my_malloc(sizeof(char) + 2);
 
     destroy_heap();
     return 0;
@@ -62,7 +60,7 @@ int main() {
 int init_heap() {
     heap = mmap(NULL, INIT_HEAP_SIZE, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
     if (heap == MAP_FAILED) {
-        perror("mmap failed");
+        perror("mmap failed during heap initalization");
         return -1;
     }
 
@@ -85,7 +83,7 @@ int destroy_heap() {
 
 size_t align_size(size_t size) {
     // size + BLOCK_SIZE - 1 ensures size of a multiple if it wasnt already
-    // bitwise and clears lower bit that represents remainder, rounding up to a multiple
+    // bitwise AND clears lower bit that represents remainder, rounding up to a multiple
     return (size + BLOCK_SIZE - 1) & ~(BLOCK_SIZE - 1);
 }
 
@@ -106,7 +104,7 @@ void *my_malloc(size_t size) {
     }
 
     if (!block) {   // valid block not found
-        perror("Unable to allocate block\n");
+        fprintf(stderr, "Error: Unable to allocate memory block of size %ld\n", size);
         return NULL;
     }
 
