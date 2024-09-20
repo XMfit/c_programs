@@ -41,6 +41,15 @@ void *my_memset(void *ptr, int value, size_t num) {
     return ptr;
 }
 
+void *my_memcpy(void *dest, const void *src, size_t n) {
+    // Cast to char * for byte-wise copying
+    char *d = (char *)dest;
+    const char *s = (const char *)src;
+    for (size_t i = 0; i < n; i++) {
+        d[i] = s[i];
+    }
+}
+
 void *my_malloc(size_t size) {
     struct block_metadata *block = heap;
     struct block_metadata *last = NULL;
@@ -124,19 +133,47 @@ void *my_calloc(size_t nelem, size_t elsize) {
     }
 
     // Mark as no longer being free, and return
-    my_memset(block, 0, total_size);
+    my_memset((char *)block + BLOCK_SIZE, 0, total_size);
     block->free = 0;
     return (char *)block + BLOCK_SIZE;  // return size of block + block_size to accomadate user size + metadata
 }
 
-/*
 void *my_realloc(void *ptr, size_t size) {
-    if (size <= 0) {
+    if (size == 0) {
+        my_free(ptr);
         return NULL;
     }
 
+    if (!ptr) {
+        return my_malloc(size);  // If ptr is NULL, behave like malloc
+    }
+
+    size = align_size(size); 
+    struct block_metadata *block = (struct block_metadata *)((char *)ptr - BLOCK_SIZE);
+    
+    // If the current block size is equal or larger to new size
+    if (block->size >= size) {
+        return ptr;
+    }
+
+    // Allocate a new block
+    void *new_ptr = my_malloc(size);
+    if (!new_ptr) {
+        return NULL;
+    }
+
+    // Copy the existing data to the new block
+    size_t copy_size;
+    if (block->size < size)
+        copy_size = block->size;
+    else
+        copy_size = size;
+
+    my_memcpy(new_ptr, ptr, copy_size);
+    my_free(ptr);  // Free the old block
+
+    return new_ptr;
 }
-*/
 
 void my_free(void *ptr) {
     if (!ptr) {

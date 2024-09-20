@@ -31,7 +31,17 @@ int main() {
     int size = 10;
     int *ptr4 = my_calloc(size, sizeof(int));
     for (int i = 0; i < size; i++) {
-        printf("%d\n", *ptr4);
+        ptr4[i] = i;
+        printf("%d\n", ptr4[i]);
+    }
+
+    int *ptr5 = my_malloc(sizeof(int));
+    *ptr5 = 2;
+    printf("Location %p Value: %d\n", (void *)ptr5, *ptr5);
+
+    ptr4 = my_realloc(ptr4, size / 2);
+    for (int i = 0; i < size; i++) {
+        printf("%d\n", ptr4[i]);
     }
 
     destroy_heap();

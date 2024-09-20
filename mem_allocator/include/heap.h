@@ -24,10 +24,11 @@ struct block_metadata {
 /* Functions to manage heap structure */
 int init_heap();
 int destroy_heap();
-void *my_memset(void *ptr, int value, size_t num);
 
 /* Expected functions to aid in malloc() and free()*/
 size_t align_size(size_t size);
+void *my_memset(void *ptr, int value, size_t num);
+void *my_memcpy(void *dest, const void *src, size_t n);
 
 /* Functions for dynamic allocation */
 void *my_malloc(size_t size);
