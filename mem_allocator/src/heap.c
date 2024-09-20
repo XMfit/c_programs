@@ -27,9 +27,18 @@ int destroy_heap() {
 }
 
 size_t align_size(size_t size) {
-    // size + BLOCK_SIZE - 1 ensures size of a multiple if it wasnt already
+    // size + BLOCK_SIZE - 1 ensures size is a multiple if it wasnt already
     // bitwise AND clears lower bit that represents remainder, rounding up to a multiple
     return (size + BLOCK_SIZE - 1) & ~(BLOCK_SIZE - 1);
+}
+
+void *my_memset(void *ptr, int value, size_t num) {
+    unsigned char *p = ptr;
+    while (num--) {
+        *p = (unsigned char) value;
+        p++;
+    }
+    return ptr;
 }
 
 void *my_malloc(size_t size) {
@@ -54,7 +63,7 @@ void *my_malloc(size_t size) {
     }
 
     // Coalescing, if curr block is larger than size + metadata split block
-    if (block->size >= size + BLOCK_SIZE ) {
+    if (block->size > size + BLOCK_SIZE ) {
         /**
          * BASICALLY we found a curr block that is for userspace
          * we split this current block via new block and giving it the size of our new user space
@@ -73,8 +82,61 @@ void *my_malloc(size_t size) {
     // Mark as no longer being free, and return
     block->free = 0;
     return (char *)block + BLOCK_SIZE;  // return size of block + block_size to accomadate user size + metadata
+}
+
+void *my_calloc(size_t nelem, size_t elsize) {
+    struct block_metadata *block = heap;
+    struct block_metadata *last = NULL;
+    size_t total_size = nelem * elsize;
+
+    if (total_size <= 0) {
+        fprintf(stderr, "Error: Unable to allocate memory block of size %ld\n", total_size);
+        return NULL;
+    }
+    total_size = align_size(total_size);
+
+    // terminates upon finding suitable block or end of memory block list
+    while (block && !(block->free && block->size >= total_size)) {
+        last = block;
+        block = block->next;
+    }
+
+    if (!block) {   // valid block not found
+        fprintf(stderr, "Error: Unable to allocate memory block of size %ld\n", total_size);
+        return NULL;
+    }
+
+    // Coalescing, if curr block is larger than size + metadata split block
+    if (block->size > total_size + BLOCK_SIZE ) {
+        /**
+         * BASICALLY we found a curr block that is for userspace
+         * we split this current block via new block and giving it the size of our new user space
+         * set its size to the space after allocation, mark it as free, and update its next
+         * set curr blocks size, and point it to new block (new block being our new available user space)
+         */
+        struct block_metadata *new_block = (struct block_metadata *)((char *)block + BLOCK_SIZE + total_size);
+        new_block->size = block->size - total_size - BLOCK_SIZE;  // size of leftover space
+        new_block->free = 1;            // marking as free
+        new_block->next = block->next;  // link to next
+
+        block->size = total_size;         // shrink the current block to requested size
+        block->next = new_block;    // point to the new block
+    }
+
+    // Mark as no longer being free, and return
+    my_memset(block, 0, total_size);
+    block->free = 0;
+    return (char *)block + BLOCK_SIZE;  // return size of block + block_size to accomadate user size + metadata
+}
+
+/*
+void *my_realloc(void *ptr, size_t size) {
+    if (size <= 0) {
+        return NULL;
+    }
 
 }
+*/
 
 void my_free(void *ptr) {
     if (!ptr) {

@@ -1,7 +1,7 @@
 #ifndef HEAP_H
 #define HEAP_H
 
-/* Needed Libaries*/
+/* Needed Libaries */
 #define _GNU_SOURCE
 #include <sys/mman.h>
 #include <unistd.h>
@@ -24,12 +24,15 @@ struct block_metadata {
 /* Functions to manage heap structure */
 int init_heap();
 int destroy_heap();
+void *my_memset(void *ptr, int value, size_t num);
 
 /* Expected functions to aid in malloc() and free()*/
 size_t align_size(size_t size);
 
 /* Functions for dynamic allocation */
 void *my_malloc(size_t size);
+void *my_calloc(size_t nelem, size_t elsize);
+void *my_realloc(void *ptr, size_t size);
 void my_free(void *ptr);
 
 #endif

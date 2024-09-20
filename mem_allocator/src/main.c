@@ -28,6 +28,11 @@ int main() {
     my_free(str);
     my_free(ptr3);
 
+    int size = 10;
+    int *ptr4 = my_calloc(size, sizeof(int));
+    for (int i = 0; i < size; i++) {
+        printf("%d\n", *ptr4);
+    }
 
     destroy_heap();
     return 0;
